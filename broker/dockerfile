@@ -1,0 +1,14 @@
+FROM node:alpine
+
+COPY . /workspace
+WORKDIR /workspace
+RUN npm install
+
+# EXPOSE 1883 8883
+
+CMD node brokerAedes.js
+
+# docker build --no-cache -t mqtt/broker .
+# docker run -p 1883:1883 -p 8883:8883 -d mqtt/broker
+
+# docker system prune --volumes

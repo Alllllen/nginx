@@ -1,0 +1,43 @@
+version: "3"
+services:
+  proxy:
+    build: ./nginx
+    depends_on:
+      - mqttbroker1
+      - mqttbroker2
+    ports:
+      - "1883:1883"
+      - "8883:8883"
+    networks:
+      main:
+        aliases:
+          - proxy
+  mqttbroker1:
+    build: ./broker
+    ports:
+      - "1884:1884"
+      - "8884:8884"
+    environment:
+      - PORT=1884
+      - WSPORT=8884
+    networks:
+      main:
+        aliases:
+          - mqttbroker1
+  mqttbroker2:
+    build: ./broker
+    ports:
+      - "1885:1885"
+      - "8885:8885"
+    environment:
+      - PORT=1885
+      - WSPORT=8885
+    networks:
+      main:
+        aliases:
+          - mqttbroker2
+networks:
+  main:
+# docker compose up -d --no-deps --build
+
+# docker system prune --volumes

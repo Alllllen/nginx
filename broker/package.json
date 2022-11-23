@@ -1,0 +1,22 @@
+{
+  "name": "nodetest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": " node brokerAedes.js",
+    "format": "prettier --write \"**/*.+(js|json)\"",
+    "stress": "./k6/artillery quick -c 10 -n 300000 http://localhost:3000"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aedes": "^0.48.0",
+    "dotenv": "^16.0.3",
+    "mqtt": "^4.3.7",
+    "websocket-stream": "^5.5.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
