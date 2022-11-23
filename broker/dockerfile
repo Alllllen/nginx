@@ -2,6 +2,7 @@ FROM node:alpine
 
 COPY . /workspace
 WORKDIR /workspace
+# ENV PORT=1883 WSPORT=8883
 RUN npm install
 
 # EXPOSE 1883 8883

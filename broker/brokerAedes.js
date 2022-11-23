@@ -24,7 +24,7 @@ const doors = {}; //store status && entry points   EX:  door635d0a51a891b7cbba45
 aedes.on("publish", function (packet, client) {
   if (client) {
     const topic = packet.topic;
-    // console.log(topic);
+    console.log(topic);
 
     if (topic.includes("route")) {
       let message = packet.payload.toString();
