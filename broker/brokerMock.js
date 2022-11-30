@@ -17,22 +17,51 @@ httpServer.listen(wsPort, function () {
   console.log("websocket server listening on wsPort ", wsPort);
 });
 
-const agvs = {}; //store status && next two steps EX: { 'agv:635d0a8ea891b7cbba452e5a': { status: 'move', nextSteps: [ [Array], [Array], [Array] ] },
-//                                                      'agv:635d0a8ea891b7cbba452e5f': { status: 'move', nextSteps: [ [Array], [Array], [Array] ] } }
-const doors = {}; //store status && entry points   EX:  door635d0a51a891b7cbba451ea6: { entries: [ [1,2], [2,3], [122,32], [12,32] ], status: 'close' }
+// const agvs = {}; //store status && next two steps EX: { 'agv:635d0a8ea891b7cbba452e5a': { status: 'move', nextSteps: [ [Array], [Array], [Array] ] }, 'agv:635d0a8ea891b7cbba452e5f': { status: 'move', nextSteps: [ [Array], [Array], [Array] ] } }
+// const doors = {}; //store status && entry points   EX: { door635d0a51a891b7cbba451ea6: { entries: [ [1,2], [2,3], [122,32], [12,32] ], status: 'close' },...}
 
-aedes.on("publish", function (packet, client) {
+//redis
+const redis = require("./utils/redis");
+
+aedes.on("publish", async function (packet, client) {
   if (client) {
     const topic = packet.topic;
-    // console.log(topic);
     if (topic.includes("test")) {
       console.log("test 2000");
-      for (let i = 0; i < 2000; i++) {
-        aedes.publish({
-          topic: `Justfortest`,
-          payload:
-            "JustfortestJustfortestJustfortestJustfortestJustfortestJustfortestJustfortest",
-        });
+      for (let i = 0; i < 200; i++) {
+        let a = {
+          task: "6371f535d06bbb700fcb3d53",
+          status: "move",
+          speed: 200,
+          startToEnd: "parkTosectionStart",
+          fullRoute: [
+            [44, 11],
+            [43, 11],
+            [43, 12],
+            [43, 13],
+            [43, 14],
+            [43, 15],
+            [43, 16],
+            [43, 17],
+            [43, 18],
+            [42, 18],
+            [41, 18],
+            [40, 18],
+            [39, 18],
+            [38, 18],
+            [38, 19],
+          ],
+          z: 1,
+          currentStep: 5,
+        };
+        a = JSON.stringify(a);
+        a = JSON.parse(a);
+
+        // aedes.publish({
+        //   topic: `Justfortexting`,
+        //   payload:
+        //     "JustfortestJustfortestJustfortestJustfortestJustfortestJustfortestJustfortest",
+        // });
       }
     }
 
@@ -142,5 +171,38 @@ aedes.on("publish", function (packet, client) {
         doors[doorKey] = { ...doorObj };
       }
     }
+
+    if (topic.includes("complete") || topic.includes("control")) {
+      redis.pub.publish(
+        `topic:${port}`,
+        JSON.stringify({
+          topic: packet.topic.toString(),
+          payload: packet.payload.toString(),
+        })
+      );
+    }
+  }
+});
+
+redis.sub.subscribe("topic");
+setTimeout(() => {
+  redis.pub.publish("topic", `topic:${port}`);
+}, 1000);
+
+redis.sub.on("message", async (channel, message) => {
+  if (channel === "topic") {
+    if (!message.includes(port)) {
+      console.log("SUBECRIBE", message);
+      redis.sub.subscribe(message);
+    }
+  } else {
+    message = JSON.parse(message);
+    console.log(
+      `channel: ${channel} / topic: ${message.topic} / payload: ${message.payload}`
+    );
+    aedes.publish({
+      topic: message.topic,
+      payload: JSON.stringify(message.payload),
+    });
   }
 });

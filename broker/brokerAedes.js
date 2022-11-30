@@ -17,9 +17,11 @@ httpServer.listen(wsPort, function () {
   console.log("websocket server listening on wsPort ", wsPort);
 });
 
-const agvs = {}; //store status && next two steps EX: { 'agv:635d0a8ea891b7cbba452e5a': { status: 'move', nextSteps: [ [Array], [Array], [Array] ] },
-//                                                      'agv:635d0a8ea891b7cbba452e5f': { status: 'move', nextSteps: [ [Array], [Array], [Array] ] } }
-const doors = {}; //store status && entry points   EX:  door635d0a51a891b7cbba451ea6: { entries: [ [1,2], [2,3], [122,32], [12,32] ], status: 'close' }
+// const agvs = {}; //store status && next two steps EX: { 'agv:635d0a8ea891b7cbba452e5a': { status: 'move', nextSteps: [ [Array], [Array], [Array] ] }, 'agv:635d0a8ea891b7cbba452e5f': { status: 'move', nextSteps: [ [Array], [Array], [Array] ] } }
+// const doors = {}; //store status && entry points   EX: { door635d0a51a891b7cbba451ea6: { entries: [ [1,2], [2,3], [122,32], [12,32] ], status: 'close' },...}
+
+//redis
+const redis = require("./utils/redis");
 
 aedes.on("publish", function (packet, client) {
   if (client) {
@@ -132,5 +134,38 @@ aedes.on("publish", function (packet, client) {
         doors[doorKey] = { ...doorObj };
       }
     }
+
+    if (topic.includes("complete") || topic.includes("control")) {
+      redis.pub.publish(
+        "topic",
+        JSON.stringify({
+          topic: packet.topic.toString(),
+          payload: packet.payload.toString(),
+        })
+      );
+    }
+  }
+});
+
+redis.sub.subscribe("topic");
+setTimeout(() => {
+  redis.pub.publish("topic", `topic:${port}`);
+}, 1000);
+
+redis.sub.on("message", async (channel, message) => {
+  if (channel === "topic") {
+    if (!message.includes(port)) {
+      console.log("SUBECRIBE", message);
+      redis.sub.subscribe(message);
+    }
+  } else {
+    message = JSON.parse(message);
+    console.log(
+      `channel: ${channel} / topic: ${message.topic} / payload: ${message.payload}`
+    );
+    aedes.publish({
+      topic: message.topic,
+      payload: JSON.stringify(message.payload),
+    });
   }
 });
