@@ -2,12 +2,14 @@ FROM node:alpine
 
 COPY . /workspace
 WORKDIR /workspace
-# ENV PORT=1883 WSPORT=8883
-RUN npm install
+# ENV PORT=1883 WSPORT=8883 REDIS_DOCKER=true
+RUN npm install --omit=dev
+# RUN npm install pm2@latest -g
 
 # EXPOSE 1883 8883
 
 CMD node brokerMock.js
+# CMD pm2-runtime brokerMock.js -i max
 
 # docker build --no-cache -t mqtt/broker .
 # docker run -p 1883:1883 -p 8883:8883 -d mqtt/broker

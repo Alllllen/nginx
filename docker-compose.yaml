@@ -14,35 +14,42 @@ services:
     #       - proxy
   mqttbroker1:
     build: ./broker
-    depends_on:
-      - redis
+    # depends_on:
+    #   - redis
     ports:
       - "1884:1884"
       - "8884:8884"
     environment:
       - PORT=1884
       - WSPORT=8884
+      - REDIS_DOCKER=true
     networks:
       - main
+    # cpuset: 2
+    mem_limit: 1g
     #     aliases:
     #       - mqttbroker1
   mqttbroker2:
     build: ./broker
-    depends_on:
-      - redis
+    # depends_on:
+    #   - redis
     ports:
       - "1885:1885"
       - "8885:8885"
     environment:
       - PORT=1885
       - WSPORT=8885
+      - REDIS_DOCKER=true
     networks:
       - main
+    # cpuset: 1
+    mem_limit: 1g
     #     aliases:
     #       - mqttbroker2
   redis:
     image: redis:alpine
     container_name: redis
+    command: --port 6379
     ports:
       - 6379:6379
     volumes:
@@ -51,7 +58,8 @@ services:
       - main
 networks:
   main:
-    driver: bridge
+    # external: true
+    # driver: bridge
+# docker network create main
 # docker compose up -d --no-deps --build
-
 # docker system prune --volumes
